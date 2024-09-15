@@ -1,18 +1,14 @@
 package org.example;
-
-
-
-
-
-
 import com.fastcgi.FCGIInterface;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 public class Main {
     public static void main(String[] args) {
-        var fcgiint = new FCGIInterface();
-        while (fcgiint.FCGIaccept() >=0){
+        var fcgiInt = new FCGIInterface();
+        while (fcgiInt.FCGIaccept() >=0){
             var content= """
                     <html>
                     <head><title>hello wrodle</title></head>
@@ -27,8 +23,22 @@ public class Main {
                     %s
                     """.formatted(content.getBytes(StandardCharsets.UTF_8).length, content);
             System.out.println(httpResponse);
+            try {
+                System.out.println(readRequestBody());
+            }catch (IOException | NullPointerException e){}
         }
     }
+    public static String readRequestBody() throws IOException {
+        FCGIInterface.request.inStream.fill();
+        var contentLength = FCGIInterface.request.inStream.available();
+        var buffer = ByteBuffer.allocate(contentLength);
+        var readBytes = FCGIInterface.request.inStream.read(buffer.array(), 0, contentLength);
+        var requestBody = new byte[readBytes];
+        buffer.get(requestBody);
+        buffer.clear();
+        return new String(requestBody, StandardCharsets.UTF_8);
+    }
+
 //    var fcgiInterface = new FCGIInterface();
 //        while (fcgiInterface.FCGIaccept() >= 0) {
 //        String requestBody = "";
