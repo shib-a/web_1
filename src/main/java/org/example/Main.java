@@ -1,9 +1,6 @@
 package org.example;
 
 import com.fastcgi.FCGIInterface;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -16,34 +13,25 @@ import java.util.HashMap;
 public class Main {
     static long start;
     static long end;
-    public static void main(String[] args) {
-//        test(-3,-5,1);
-        var fcgiInt = new FCGIInterface();
-        while (fcgiInt.FCGIaccept() >=0){
-            var httpResponse = """
+    static String body = null;
+    static String httpResponse = """
                     Content-Type: application/json
                     ContentLength: %d
                     
                     
                     %s
                     """;
+    public static void main(String[] args) {
+//        test(-3,-5,1);
+        var fcgiInt = new FCGIInterface();
+        while (fcgiInt.FCGIaccept() >=0){
             try {
 //                var res = "{\"result\":"+validate(readRequestBody())+",\"time\":"+LocalDateTime.now()+",\"respTime:\":"+(end-start)+"}";
-                var res = String.format("{\"result\": %b}",validate(readRequestBody()));
-
-//                System.out.println(String.format(httpResponse,res.getBytes(StandardCharsets.UTF_8).length,res));
-                System.out.println(String.format(httpResponse, res.getBytes(StandardCharsets.UTF_8).length, res));
-
+                var res = "{\"result\":"+validate(readRequestBody()+"}");
+                send(res);
             }catch (Exception e){
-                httpResponse = """
-                    Content-Type: text/json
-                    ContentLength: %d
-                    
-                    
-                    %s
-                    """;
-                var msg = "{\"error\": %s}".formatted(e.getMessage());
-                System.out.println(httpResponse.formatted(msg.getBytes(StandardCharsets.UTF_8), msg));
+                var msg = "{\"error\":\""+ e.getMessage()+ " "+ body +"\"}";
+                send(msg);
             }
 
         }
@@ -56,10 +44,11 @@ public class Main {
         var requestBody = new byte[readBytes];
         buffer.get(requestBody);
         buffer.clear();
-//        var req_str = new String(requestBody, StandardCharsets.UTF_8);
-        return new String(requestBody, StandardCharsets.UTF_8);
+        body = new String(requestBody,StandardCharsets.UTF_8);
+        return body;
     }
-    public static Boolean validate(String requestBody){
+
+    public static boolean validate(String requestBody){
 //        start = System.nanoTime();
         var jo = requestBody.split("&");
         HashMap<String, Double> data = new HashMap<>();
@@ -68,9 +57,7 @@ public class Main {
             try{
                 data.put(kvarr[0],Double.parseDouble(kvarr[1]));
             }catch (NumberFormatException e){data.put(kvarr[0], null);}
-        }
-//        var data = (JsonObject) JsonParser.parseString(g.toJson(jo));
-        var x = data.get("x_data");
+        }var x = data.get("x_data");
         var y = data.get("y_data");
         var r = data.get("r_data");
 //        end = System.nanoTime();
@@ -90,19 +77,9 @@ public class Main {
         var res = "{\"result\":"+validate("x_data=0&y_data=0&r_data=5")+",\"time\":"+LocalDateTime.now()+",\"respTime:\":"+((end-start))+"}";
         System.out.println(res);
     }
+    public static void send(String msg){
+        System.out.println(String.format(httpResponse, msg.getBytes().length, msg));
+    }
 
-//    private static String readRequestBody() throws IOException {
-//        FCGIInterface.request.inStream.fill();
-//
-//        var contentLength = FCGIInterface.request.inStream.available();
-//        var buffer = ByteBuffer.allocate(contentLength);
-//        var readBytes = FCGIInterface.request.inStream.read(buffer.array(), 0, contentLength);
-//
-//        var requestBodyRaw = new byte[readBytes];
-//        buffer.get(requestBodyRaw);
-//        buffer.clear();
-//
-//        return new String(requestBodyRaw, StandardCharsets.UTF_8);
-//    }
-//
+
 }
