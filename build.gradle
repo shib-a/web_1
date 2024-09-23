@@ -14,6 +14,7 @@ repositories {
 }
 dependencies {
     implementation name: 'fastcgi-lib'
+        implementation 'com.google.code.gson:gson:2.11.0'
 }
 test {
     useJUnitPlatform()
