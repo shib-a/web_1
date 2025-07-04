@@ -2,7 +2,7 @@ package org.example;
 
 import com.fastcgi.FCGIInterface;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -33,7 +33,6 @@ public class Main {
                 var msg = "{\"error\":\""+ e.getMessage()+ " "+ body +"\"}";
                 send(msg);
             }
-
         }
     }
     public static String readRequestBody() throws IOException {
@@ -48,7 +47,7 @@ public class Main {
         return body;
     }
 
-    public static boolean validate(String requestBody){
+    public static boolean validate(String requestBody) throws IOException {
 //        start = System.nanoTime();
         var jo = requestBody.split("&");
         HashMap<String, Double> data = new HashMap<>();
@@ -57,9 +56,17 @@ public class Main {
             try{
                 data.put(kvarr[0],Double.parseDouble(kvarr[1]));
             }catch (NumberFormatException e){data.put(kvarr[0], null);}
-        }var x = data.get("x_data");
+        }
+        var x = data.get("x_data");
         var y = data.get("y_data");
         var r = data.get("r_data");
+        FileOutputStream fos = new FileOutputStream("out.txt");
+        FileInputStream fis = new FileInputStream("in.txt");
+        byte[] bytes = new byte[256];
+        while(fis.read(bytes) >= 0){
+            fos.write(bytes);
+        };
+
 //        end = System.nanoTime();
         return checkCircle(x, y, r) || checkRectangle(x, y, r) || checkTriangle(x, y, r);
     }
@@ -72,7 +79,7 @@ public class Main {
     public static boolean checkTriangle(double x, double y, double r){
         return (x <= 0 && y <= 0 && x > -r/2 && y >= -r && x - y + r >= 0);
     }
-    public static void test(double x, double y, double r){
+    public static void test(double x, double y, double r) throws IOException {
         System.out.println(checkCircle(x, y, r) || checkRectangle(x, y, r) || checkTriangle(x, y, r));
         var res = "{\"result\":"+validate("x_data=0&y_data=0&r_data=5")+",\"time\":"+LocalDateTime.now()+",\"respTime:\":"+((end-start))+"}";
         System.out.println(res);

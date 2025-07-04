@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/static/style.css">
+  <title>Title</title>
+</head>
+<body>
+<div class="base">
+  <header class="main_header">
+    <h1 id="h1">Мартышов Данила Викторович, Р3207, Вариант 409091</h1>
+  </header>
+  <form id="data">
+    <div class = "q_entry">
+      <div>
+      <label>Изменение X</label>
+      </div>
+      <button type="button", class="ch_x">-3</button>
+      <button type="button", class="ch_x">-2</button>
+      <button type="button", class="ch_x">-1</button>
+      <button type="button", class="ch_x">0</button>
+      <button type="button", class="ch_x">1</button>
+      <button type="button", class="ch_x">2</button>
+      <button type="button", class="ch_x">3</button>
+      <button type="button", class="ch_x">4</button>
+      <button type="button", class="ch_x">5</button>
+    </div>
+    <div class = "q_entry">
+      <div><label for="data_ch_y">Изменение Y</label></div>
+      <input type="text", name="ch_y", placeholder="-5..5", id="data_ch_y">
+    </div>
+    <div class="q_entry" id = 'r_choice'>
+     <div>
+       <label>Изменение R</label>
+     </div>
+      <input type="radio", name="radius", value="1", class="r_change">R=1<br>
+      <input type="radio", name="radius", value="2", class="r_change">R=2<br>
+      <input type="radio", name="radius", value="3", class="r_change">R=3<br>
+      <input type="radio", name="radius", value="4", class="r_change">R=4<br>
+      <input type="radio", name="radius", value="5", class="r_change">R=5<br>
+    </div>
+    <input type="submit" id = "submit_button" onclick="handleSubmit()">
+  </form>
+  <div id = "ti_div">
+  <div id = "table_div">
+  <table id = "table">
+    <thead>
+    <tr>
+      <th class="x_th">Coord. x</th>
+      <th>Coord. y</th>
+      <th>R value</th>
+      <th id ="hit_th">Hit</th>
+      <th>Time</th>
+      <th>Responded in</th>
+    </tr>
+    </thead>
+    <tbody id = "table_body">
+    </tbody>
+  </table>
+    <img src="img.png" id="image">
+  </div>
+  </div>
+  <footer class="footer">
+    <h5>shibeyshi® limited 2024. All rights reserved.</h5>
+  </footer>
+</div>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+<script rel="javascript" type="application/javascript">
+
+  var x_val;
+  var y_val;
+  var r_val;
+  const buttons = document.querySelectorAll(".ch_x");
+
+  var isValidInput = 0;
+  buttons.forEach(button => {
+    button.addEventListener('click', function() {
+      x_val = this.textContent;
+    });
+  });
+  document.getElementById("r_choice").addEventListener("input", function (){
+    r_val = document.getElementById("r_choice").value;
+  })
+
+  var ch_y_field = document.getElementById("data_ch_y");
+  ch_y_field.addEventListener("input",function (){
+    y_val = String (ch_y_field.value);
+    try{
+      if(y_val.length===0){
+        ch_y_field.style.backgroundColor = "white";
+        isValidInput=0;
+        return;
+      }
+      y_val = parseInt(y_val);
+      if(isNaN(y_val)){
+        ch_y_field.style.backgroundColor = "red";
+        isValidInput=0;
+      }
+      else if((y_val<-5 || y_val >5)){
+        ch_y_field.style.backgroundColor = "red";
+        isValidInput=0;
+      }
+      else{
+        ch_y_field.style.backgroundColor = "white";
+        isValidInput=1;
+      }
+    } catch (e){
+      ch_y_field.style.backgroundColor = "red";
+      isValidInput=0;
+    }
+  })
+
+  function handleSubmit(e){
+    var table = document.getElementById("table");
+    r_val = document.querySelector('input[name="radius"]:checked').value;
+    console.log(x_val, y_val, r_val)
+    if(isValidInput) {
+      jQuery.ajax({
+        url: "/fcgi-bin/?",
+        type: "POST",
+        dataType: "json",
+        data: {x_data: x_val, y_data: y_val, r_data: r_val},
+        success: function (response) {
+          var new_row = table.insertRow();
+          var xCell = new_row.insertCell(0);
+          var yCell = new_row.insertCell(1);
+          var rCell = new_row.insertCell(2);
+          var hitCell = new_row.insertCell(3);
+          var timeCell = new_row.insertCell(4);
+          var respTimeCell = new_row.insertCell(5);
+          if (response.error != null) {
+            console.log(response)
+          } else {
+            if (response.result) {
+              xCell.innerHTML = x_val;
+              yCell.innerHTML = y_val;
+              rCell.innerHTML = r_val;
+              hitCell.innerHTML = 'yes';
+              // timeCell.innerHTML= response.time;
+              // respTimeCell.innerHTML = response.respTime;
+              console.log('yes');
+            } else {
+              xCell.innerHTML = x_val;
+              yCell.innerHTML = y_val;
+              rCell.innerHTML = r_val;
+              hitCell.innerHTML = 'no';
+              // timeCell.innerHTML= response.time;
+              // respTimeCell.innerHTML = response.respTime;
+              console.log('no');
+            }
+          }
+        },
+        error: function (xhr, status, error){
+          alert(error, xhr)
+        }
+      });
+    }
+  }
+</script>
+</body>
+</html>
